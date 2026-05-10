@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config/secrets.dart';
 
 class GitHubService {
   static const String owner = 'cruz-star';
   static const String repo = 'artesanias-inti';
   static const String path = 'productos.json';
-  static const String token = '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';
+  static const String token = Secrets.githubToken;
 
   Future<bool> uploadJson(String jsonContent) async {
     final url = Uri.parse('https://api.github.com/repos/$owner/$repo/contents/$path');

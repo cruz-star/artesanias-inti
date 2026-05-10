@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artesanías Inti - Tienda Online</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="icon" type="image/png" href="ic_launcher.png">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <img src="ic_launcher.png" alt="Artesanías Inti Logo" class="nav-logo">
+                <h1>Artesanías <span>Inti</span></h1>
+            </div>
+            <div class="nav-actions">
+                <button id="cart-btn" class="icon-btn">
+                    <span class="material-symbols-outlined">shopping_cart</span>
+                    <span id="cart-count" class="badge">0</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h2>Tradición y Arte en cada Pieza</h2>
+                <p>Descubre la magia de nuestras artesanías hechas a mano.</p>
+                <div class="search-bar">
+                    <span class="material-symbols-outlined">search</span>
+                    <input type="text" id="search-input" placeholder="Buscar artesanías...">
+                </div>
+            </div>
+        </section>
+
+        <section class="catalog">
+            <div class="section-header">
+                <h3>Nuestro Catálogo</h3>
+                <div class="filters">
+                    <button class="filter-btn active" data-category="all">Todos</button>
+                    <button class="filter-btn" data-category="Cerámica">Cerámica</button>
+                    <button class="filter-btn" data-category="Textiles">Textiles</button>
+                    <button class="filter-btn" data-category="Joyería">Joyería</button>
+                </div>
+            </div>
+            <div id="product-grid" class="product-grid">
+                <!-- Products will be loaded here -->
+                <div class="loader">Cargando tesoros...</div>
+            </div>
+        </section>
+    </main>
+
+    <div id="cart-drawer" class="drawer">
+        <div class="drawer-content">
+            <div class="drawer-header">
+                <h3>Tu Carrito</h3>
+                <button id="close-cart" class="close-btn">&times;</button>
+            </div>
+            <div id="cart-items" class="cart-items">
+                <!-- Cart items will be loaded here -->
+            </div>
+            
+            <!-- Checkout Form (Hidden by default) -->
+            <div id="checkout-form-container" class="checkout-form" style="display: none;">
+                <h4>Datos para el Envío</h4>
+                <div class="form-group">
+                    <input type="text" id="customer-name" placeholder="Nombre completo" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="customer-address" placeholder="Dirección de envío" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="customer-phone" placeholder="Teléfono de contacto" required>
+                </div>
+                <div class="payment-methods">
+                    <p>Medios de Pago Aceptados:</p>
+                    <div class="payment-icons">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Logo_Mercado_Pago.png" alt="Mercado Pago">
+                    </div>
+                </div>
+            </div>
+
+            <div class="drawer-footer">
+                <div class="total-row">
+                    <span>Total:</span>
+                    <span id="cart-total">$ 0</span>
+                </div>
+                <button id="checkout-btn" class="primary-btn">Proceder al Pago</button>
+                <button id="confirm-order-btn" class="primary-btn" style="display: none;">Confirmar Pedido vía WhatsApp</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <img src="ic_launcher.png" alt="Artesanías Inti">
+                <p>Artesanías Inti &copy; 2024</p>
+            </div>
+            <div class="footer-contacts">
+                <a id="footer-whatsapp" href="#" target="_blank" class="contact-link">
+                    <span class="material-symbols-outlined">chat</span>
+                    <span id="contact-phone-text">WhatsApp</span>
+                </a>
+                <a id="footer-email" href="#" class="contact-link">
+                    <span class="material-symbols-outlined">mail</span>
+                    <span id="contact-email-text">Email</span>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

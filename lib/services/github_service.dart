@@ -17,8 +17,9 @@ class GitHubService {
       final getRes = await http.get(
         url,
         headers: {
-          'Authorization': 'token $token',
+          'Authorization': 'Bearer $token',
           'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'Artesanias-Inti-App',
         },
       );
 
@@ -32,9 +33,10 @@ class GitHubService {
       final putRes = await http.put(
         url,
         headers: {
-          'Authorization': 'token $token',
+          'Authorization': 'Bearer $token',
           'Accept': 'application/vnd.github.v3+json',
           'Content-Type': 'application/json',
+          'User-Agent': 'Artesanias-Inti-App',
         },
         body: jsonEncode({
           'message': 'Sincronización desde App Artesanías Inti',
@@ -60,8 +62,9 @@ class GitHubService {
       final response = await http.get(
         url,
         headers: {
-          'Authorization': 'token $token',
+          'Authorization': 'Bearer $token',
           'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'Artesanias-Inti-App',
         },
       );
 

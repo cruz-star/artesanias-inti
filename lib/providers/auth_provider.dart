@@ -5,7 +5,7 @@ enum UserRole { seller }
 class AuthProvider extends ChangeNotifier {
   bool _isLoggedIn = false;
 
-  static const String _sellerPassword = 'inti2024';
+  static const String _sellerPassword = 'inti2027';
   bool get isLoggedIn => _isLoggedIn;
 
   bool loginAsSeller(String password) {

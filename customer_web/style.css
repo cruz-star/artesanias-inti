@@ -20,11 +20,7 @@
 
 body {
     font-family: 'Outfit', sans-serif;
-    background: 
-        linear-gradient(rgba(15, 2, 2, 0.95), rgba(15, 2, 2, 0.95)),
-        url('ic_launcher.png') repeat;
-    background-size: 150px;
-    background-attachment: fixed;
+    background: var(--bg-deep);
     color: var(--text-main);
     line-height: 1.6;
     overflow-x: hidden;
@@ -79,19 +75,27 @@ nav {
     color: var(--primary);
 }
 
-.icon-btn {
+.icon-btn, .nav-link-icon {
     background: none;
     border: none;
     color: var(--text-main);
+    text-decoration: none;
     cursor: pointer;
     position: relative;
     display: flex;
     align-items: center;
-    transition: transform 0.3s ease;
+    transition: all 0.3s ease;
 }
 
-.icon-btn:hover {
-    transform: scale(1.2) rotate(5deg);
+.icon-btn:hover, .nav-link-icon:hover {
+    color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
 }
 
 .badge {
@@ -112,8 +116,8 @@ nav {
 
 /* Hero Section */
 .hero {
-    height: 60vh;
-    background: linear-gradient(rgba(15, 2, 2, 0.6), rgba(15, 2, 2, 0.9)), url('https://images.unsplash.com/photo-1590602847861-f357a9332bbc?q=80&w=2070&auto=format&fit=crop');
+    height: 70vh;
+    background: linear-gradient(rgba(15, 2, 2, 0.7), rgba(15, 2, 2, 0.9)), url('hero_bg.png');
     background-size: cover;
     background-position: center;
     display: flex;
@@ -121,6 +125,22 @@ nav {
     justify-content: center;
     text-align: center;
     padding-top: 80px;
+}
+
+.hero-logo {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 2rem;
+    border-radius: 50%;
+    border: 3px solid var(--primary);
+    box-shadow: var(--glow);
+    animation: pulse 3s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
 }
 
 .hero-content h2 {
@@ -274,13 +294,13 @@ nav {
     color: var(--text-dim);
     font-size: 0.9rem;
     margin-bottom: 1.2rem;
-    max-height: 2.8em; /* Aproximadamente 2 líneas */
+    max-height: 2.8em;
     overflow: hidden;
     transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease;
 }
 
 .product-card:hover .card-info p {
-    max-height: 300px; /* Expansión suave */
+    max-height: 300px;
     color: var(--text-main);
 }
 
@@ -376,7 +396,6 @@ nav {
 }
 
 .primary-btn {
-    width: double;
     width: 100%;
     background: var(--primary);
     color: var(--bg-deep);
@@ -408,11 +427,11 @@ nav {
     }
     
     .nav-actions {
-        display: none; /* Simplificamos en móvil */
+        display: none;
     }
 
     .products-grid {
-        grid-template-columns: 1fr; /* Una columna en celulares pequeños */
+        grid-template-columns: 1fr;
         padding: 0 1rem;
     }
 

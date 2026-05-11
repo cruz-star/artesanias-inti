@@ -104,17 +104,13 @@ async function init() {
 }
 
 function updateContactsUI() {
-    const waText = document.getElementById('contact-phone-text');
-    const emailText = document.getElementById('contact-email-text');
-    const waLink = document.getElementById('footer-whatsapp');
-    const emailLink = document.getElementById('footer-email');
+    const waLink = document.getElementById('nav-whatsapp');
+    const emailLink = document.getElementById('nav-email');
 
     if (storeContact.phone) {
-        waText.innerText = storeContact.phone;
         waLink.href = `https://wa.me/${storeContact.phone.replace(/\D/g, '')}`;
     }
     if (storeContact.email) {
-        emailText.innerText = storeContact.email;
         emailLink.href = `mailto:${storeContact.email}`;
     }
 }

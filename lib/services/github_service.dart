@@ -5,7 +5,7 @@ import '../config/secrets.dart';
 class GitHubService {
   static const String owner = 'cruz-star';
   static const String repo = 'artesanias-inti';
-  static const String path = 'productos.json';
+  static const String path = 'customer_web/productos.json';
   static const String token = Secrets.githubToken;
 
   Future<bool> uploadJson(String jsonContent) async {

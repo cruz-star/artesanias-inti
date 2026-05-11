@@ -88,7 +88,7 @@ async function init() {
         const response = await fetch(DATA_URL + '?t=' + Date.now());
         if (response.ok) {
             const data = await response.json();
-            products = data.products || MOCK_PRODUCTS;
+            products = (data.products && data.products.length > 0) ? data.products : MOCK_PRODUCTS;
             if (data.contact) {
                 storeContact = data.contact;
                 updateContactsUI();
@@ -126,7 +126,7 @@ function renderProducts(productsToRender) {
         card.className = 'product-card';
         card.innerHTML = `
             <div class="card-img">
-                <img src="${product.image || 'ic_launcher.png'}" alt="${product.name}">
+                <img src="${product.image || product.imageFileName || 'ic_launcher.png'}" alt="${product.name}">
                 <span class="category-badge">${product.category}</span>
             </div>
             <div class="card-info">

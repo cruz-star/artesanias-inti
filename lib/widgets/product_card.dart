@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/product.dart';
+import '../config/secrets.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -16,10 +17,11 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Formato estilo Mercado Libre: $ 15.000
     final currencyFormat = NumberFormat.currency(
       symbol: '\$ ',
-      decimalDigits: 0,
-      locale: 'en_US',
+      decimalDigits: 0, // Sin decimales si es redondo
+      locale: 'es_AR',
     );
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -49,7 +51,7 @@ class ProductCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    currencyFormat.format(product.price),
+                    currencyFormat.format(product.price).replaceAll(',', '.'), // Asegurar punto para miles
                     style: TextStyle(
                       color: colorScheme.primary,
                       fontWeight: FontWeight.bold,
@@ -67,34 +69,34 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildImage(ColorScheme colorScheme) {
+    // Prioridad 1: Imagen local (recién seleccionada)
     if (product.imageBytes != null && product.imageBytes!.isNotEmpty) {
-      final isVideo = product.imageFileName?.toLowerCase().endsWith('.mp4') ?? false ||
-                     product.imageFileName?.toLowerCase().endsWith('.mov') ?? false ||
-                     product.imageFileName?.toLowerCase().endsWith('.avi') ?? false;
-
-      if (isVideo) {
-        return Container(
-          color: colorScheme.onSurface.withValues(alpha: 0.05),
-          width: double.infinity,
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.play_circle_outline, size: 48, color: colorScheme.primary),
-                const SizedBox(height: 4),
-                Text('Video', style: TextStyle(fontSize: 10, color: colorScheme.primary)),
-              ],
-            ),
-          ),
-        );
-      }
-
       return Image.memory(
         product.imageBytes!,
         fit: BoxFit.cover,
         width: double.infinity,
       );
     }
+    
+    // Prioridad 2: Imagen remota del servidor
+    if (product.imageUrl != null && product.imageUrl!.isNotEmpty) {
+      final fullUrl = '${Secrets.serverUrl}/${product.imageUrl}';
+      return Image.network(
+        fullUrl,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        errorBuilder: (context, error, stackTrace) => _buildPlaceholder(colorScheme),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(child: CircularProgressIndicator(value: loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null));
+        },
+      );
+    }
+
+    return _buildPlaceholder(colorScheme);
+  }
+
+  Widget _buildPlaceholder(ColorScheme colorScheme) {
     return Container(
       color: colorScheme.onSurface.withValues(alpha: 0.1),
       child: Center(

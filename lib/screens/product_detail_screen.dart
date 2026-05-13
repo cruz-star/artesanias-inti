@@ -9,6 +9,7 @@ import '../models/product.dart';
 import '../providers/cart_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/product_provider.dart';
+import '../config/secrets.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -29,23 +30,29 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     _isVideo = widget.product.imageFileName?.toLowerCase().endsWith('.mp4') ?? false ||
               widget.product.imageFileName?.toLowerCase().endsWith('.mov') ?? false;
     
-    if (_isVideo && widget.product.imageBytes != null) {
-      _initVideo();
+    if (_isVideo) {
+       _initVideo();
     }
   }
 
   Future<void> _initVideo() async {
     try {
-      final tempDir = await getTemporaryDirectory();
-      final tempFile = File('${tempDir.path}/${widget.product.imageFileName}');
-      await tempFile.writeAsBytes(widget.product.imageBytes!);
-      
-      _videoController = VideoPlayerController.file(tempFile)
-        ..initialize().then((_) {
-          setState(() {});
-          _videoController?.play();
-          _videoController?.setLooping(true);
-        });
+      if (widget.product.imageBytes != null) {
+        final tempDir = await getTemporaryDirectory();
+        final tempFile = File('${tempDir.path}/${widget.product.imageFileName}');
+        await tempFile.writeAsBytes(widget.product.imageBytes!);
+        _videoController = VideoPlayerController.file(tempFile);
+      } else if (widget.product.imageUrl != null) {
+        final fullUrl = '${Secrets.serverUrl}/${widget.product.imageUrl}';
+        _videoController = VideoPlayerController.networkUrl(Uri.parse(fullUrl));
+      }
+
+      if (_videoController != null) {
+        await _videoController!.initialize();
+        setState(() {});
+        _videoController?.play();
+        _videoController?.setLooping(true);
+      }
     } catch (e) {
       print('Error al inicializar video: $e');
     }
@@ -62,7 +69,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final currencyFormat = NumberFormat.currency(
       symbol: '\$ ',
       decimalDigits: 0,
-      locale: 'en_US',
+      locale: 'es_AR',
     );
     final colorScheme = Theme.of(context).colorScheme;
     final auth = context.watch<AuthProvider>();
@@ -92,7 +99,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    currencyFormat.format(widget.product.price),
+                    currencyFormat.format(widget.product.price).replaceAll(',', '.'),
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -116,7 +123,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         : 'Sin descripción disponible.',
                     style: TextStyle(
                       fontSize: 15,
-                      color: colorScheme.onSurface.withValues(alpha: 0.8),
+                      color: colorScheme.onSurface.withOpacity(0.8),
                       height: 1.5,
                     ),
                   ),
@@ -160,7 +167,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 },
                 icon: const Icon(Icons.add_shopping_cart),
                 label: Text(
-                  'Agregar al carrito - ${currencyFormat.format(widget.product.price)}',
+                  'Agregar al carrito - ${currencyFormat.format(widget.product.price).replaceAll(',', '.')}',
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colorScheme.primary,
@@ -178,59 +185,81 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildMedia(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    if (widget.product.imageBytes != null && widget.product.imageBytes!.isNotEmpty) {
-      if (_isVideo) {
-        if (_videoController != null && _videoController!.value.isInitialized) {
-          return Container(
-            height: 300,
-            width: double.infinity,
-            color: Colors.black,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                AspectRatio(
-                  aspectRatio: _videoController!.value.aspectRatio,
-                  child: VideoPlayer(_videoController!),
-                ),
-                Positioned(
-                  bottom: 10,
-                  right: 10,
-                  child: IconButton(
-                    icon: Icon(
-                      _videoController!.value.isPlaying ? Icons.pause : Icons.play_arrow,
-                      color: Colors.white,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _videoController!.value.isPlaying ? _videoController!.pause() : _videoController!.play();
-                      });
-                    },
+    
+    // Video logic
+    if (_isVideo) {
+      if (_videoController != null && _videoController!.value.isInitialized) {
+        return Container(
+          height: 300,
+          width: double.infinity,
+          color: Colors.black,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              AspectRatio(
+                aspectRatio: _videoController!.value.aspectRatio,
+                child: VideoPlayer(_videoController!),
+              ),
+              Positioned(
+                bottom: 10,
+                right: 10,
+                child: IconButton(
+                  icon: Icon(
+                    _videoController!.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                    color: Colors.white,
                   ),
+                  onPressed: () {
+                    setState(() {
+                      _videoController!.value.isPlaying ? _videoController!.pause() : _videoController!.play();
+                    });
+                  },
                 ),
-              ],
-            ),
-          );
-        } else {
-          return Container(
-            height: 300,
-            width: double.infinity,
-            color: cs.onSurface.withValues(alpha: 0.1),
-            child: const Center(child: CircularProgressIndicator()),
-          );
-        }
+              ),
+            ],
+          ),
+        );
+      } else {
+        return Container(
+          height: 300,
+          width: double.infinity,
+          color: cs.onSurface.withOpacity(0.1),
+          child: const Center(child: CircularProgressIndicator()),
+        );
       }
+    }
+
+    // Image logic
+    if (widget.product.imageBytes != null && widget.product.imageBytes!.isNotEmpty) {
       return SizedBox(
         height: 300,
         width: double.infinity,
         child: Image.memory(widget.product.imageBytes!, fit: BoxFit.cover),
       );
     }
+
+    if (widget.product.imageUrl != null && widget.product.imageUrl!.isNotEmpty) {
+      final fullUrl = '${Secrets.serverUrl}/${widget.product.imageUrl}';
+      return SizedBox(
+        height: 300,
+        width: double.infinity,
+        child: Image.network(
+          fullUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _buildPlaceholder(cs),
+        ),
+      );
+    }
+
+    return _buildPlaceholder(cs);
+  }
+
+  Widget _buildPlaceholder(ColorScheme cs) {
     return Container(
       height: 300,
       width: double.infinity,
-      color: cs.onSurface.withValues(alpha: 0.1),
+      color: cs.onSurface.withOpacity(0.1),
       child: Center(
-        child: Icon(Icons.image_outlined, size: 80, color: cs.onSurface.withValues(alpha: 0.4)),
+        child: Icon(Icons.image_outlined, size: 80, color: cs.onSurface.withOpacity(0.4)),
       ),
     );
   }
@@ -241,7 +270,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: cs.onSurface.withValues(alpha: 0.6)),
+          Icon(icon, size: 18, color: cs.onSurface.withOpacity(0.6)),
           const SizedBox(width: 8),
           Text(text, style: const TextStyle(fontSize: 14)),
         ],

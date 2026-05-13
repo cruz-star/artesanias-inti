@@ -10,6 +10,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../providers/product_provider.dart';
 import 'seller_product_form.dart';
 import 'seller_contact_screen.dart';
+import '../config/secrets.dart';
 
 class SellerDashboard extends StatefulWidget {
   const SellerDashboard({super.key});
@@ -28,7 +29,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
     final currencyFormat = NumberFormat.currency(
       symbol: '\$ ',
       decimalDigits: 0,
-      locale: 'en_US',
+      locale: 'es_AR',
     );
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -162,13 +163,19 @@ class _SellerDashboardState extends State<SellerDashboard> {
                                       product.imageBytes!,
                                       fit: BoxFit.cover,
                                     )
-                                  : Container(
-                                      color: colorScheme.onSurface.withValues(alpha: 0.1),
-                                      child: Icon(
-                                        Icons.image_outlined,
-                                        color: colorScheme.onSurface.withValues(alpha: 0.4),
-                                      ),
-                                    ),
+                                  : (product.imageUrl != null
+                                      ? Image.network(
+                                          '${Secrets.serverUrl}/${product.imageUrl}',
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) => Container(
+                                            color: colorScheme.onSurface.withOpacity(0.1),
+                                            child: Icon(Icons.image_outlined, color: colorScheme.onSurface.withOpacity(0.4)),
+                                          ),
+                                        )
+                                      : Container(
+                                          color: colorScheme.onSurface.withOpacity(0.1),
+                                          child: Icon(Icons.image_outlined, color: colorScheme.onSurface.withOpacity(0.4)),
+                                        )),
                             ),
                           ),
                           title: Text(
@@ -179,7 +186,7 @@ class _SellerDashboardState extends State<SellerDashboard> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                currencyFormat.format(product.price),
+                                currencyFormat.format(product.price).replaceAll(',', '.'),
                                 style: TextStyle(
                                   color: colorScheme.primary,
                                   fontWeight: FontWeight.bold,

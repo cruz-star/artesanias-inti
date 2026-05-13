@@ -5,8 +5,9 @@ class Product {
   String name;
   String description;
   double price;
-  Uint8List? imageBytes;
+  Uint8List? imageBytes; // Para uso local temporal antes de subir
   String? imageFileName;
+  String? imageUrl;     // URL pública del servidor
   String category;
   bool isAvailable;
   String? contacto;
@@ -20,6 +21,7 @@ class Product {
     required this.price,
     this.imageBytes,
     this.imageFileName,
+    this.imageUrl,
     this.category = 'General',
     this.isAvailable = true,
     this.contacto,
@@ -39,22 +41,23 @@ class Product {
       'email': email,
       'telefono': telefono,
       'imageFileName': imageFileName,
-      // Note: imageBytes is handled separately for storage/transmission
+      'imageUrl': imageUrl,
     };
   }
 
   factory Product.fromMap(Map<String, dynamic> map) {
     return Product(
-      id: map['id'],
-      name: map['name'],
+      id: map['id'].toString(),
+      name: map['name'] ?? '',
       description: map['description'] ?? '',
-      price: (map['price'] as num).toDouble(),
+      price: (map['price'] as num?)?.toDouble() ?? 0.0,
       category: map['category'] ?? 'General',
       isAvailable: map['isAvailable'] ?? true,
       contacto: map['contacto'],
       email: map['email'],
       telefono: map['telefono'],
       imageFileName: map['imageFileName'],
+      imageUrl: map['imageUrl'],
     );
   }
 
@@ -64,6 +67,7 @@ class Product {
     double? price,
     Uint8List? imageBytes,
     String? imageFileName,
+    String? imageUrl,
     String? category,
     bool? isAvailable,
     String? contacto,
@@ -77,6 +81,7 @@ class Product {
       price: price ?? this.price,
       imageBytes: imageBytes ?? this.imageBytes,
       imageFileName: imageFileName ?? this.imageFileName,
+      imageUrl: imageUrl ?? this.imageUrl,
       category: category ?? this.category,
       isAvailable: isAvailable ?? this.isAvailable,
       contacto: contacto ?? this.contacto,

@@ -13,6 +13,9 @@ class _SellerContactScreenState extends State<SellerContactScreen> {
   late final TextEditingController _contactoCtr;
   late final TextEditingController _emailCtrl;
   late final TextEditingController _telefonoCtrl;
+  late final TextEditingController _cbuCtrl;
+  late final TextEditingController _aliasCtrl;
+  late final TextEditingController _titularCtrl;
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -22,6 +25,9 @@ class _SellerContactScreenState extends State<SellerContactScreen> {
     _contactoCtr = TextEditingController(text: p.contacto);
     _emailCtrl = TextEditingController(text: p.email);
     _telefonoCtrl = TextEditingController(text: p.telefono);
+    _cbuCtrl = TextEditingController(text: p.cbu);
+    _aliasCtrl = TextEditingController(text: p.alias);
+    _titularCtrl = TextEditingController(text: p.titular);
   }
 
   @override
@@ -29,6 +35,9 @@ class _SellerContactScreenState extends State<SellerContactScreen> {
     _contactoCtr.dispose();
     _emailCtrl.dispose();
     _telefonoCtrl.dispose();
+    _cbuCtrl.dispose();
+    _aliasCtrl.dispose();
+    _titularCtrl.dispose();
     super.dispose();
   }
 
@@ -38,6 +47,11 @@ class _SellerContactScreenState extends State<SellerContactScreen> {
       contacto: _contactoCtr.text.trim(),
       email: _emailCtrl.text.trim(),
       telefono: _telefonoCtrl.text.trim(),
+    );
+    context.read<ProductProvider>().updatePaymentInfo(
+      cbu: _cbuCtrl.text.trim(),
+      alias: _aliasCtrl.text.trim(),
+      titular: _titularCtrl.text.trim(),
     );
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Información de contacto actualizada')),
@@ -105,6 +119,53 @@ class _SellerContactScreenState extends State<SellerContactScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   prefixIcon: const Icon(Icons.phone_outlined),
+                ),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+              ),
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 12),
+              const Text(
+                'Datos de Pago (Transferencia)',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _titularCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Titular de la Cuenta',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  prefixIcon: const Icon(Icons.person_outline),
+                ),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _cbuCtrl,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'CBU / CVU',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  prefixIcon: const Icon(Icons.account_balance_outlined),
+                ),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _aliasCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Alias',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  prefixIcon: const Icon(Icons.alternate_email),
                 ),
                 validator: (v) =>
                     (v == null || v.trim().isEmpty) ? 'Requerido' : null,

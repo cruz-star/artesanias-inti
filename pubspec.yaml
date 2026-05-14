@@ -1,7 +1,7 @@
 name: artesanias_inti
 description: "Artesanías Inti - Tienda online de artesanías"
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: ^3.10.4

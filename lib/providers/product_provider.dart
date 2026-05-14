@@ -111,7 +111,7 @@ class ProductProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> publishToWeb() async {
+  Future<bool> publishToWeb({String? token}) async {
     _isPublishing = true;
     notifyListeners();
 
@@ -124,6 +124,7 @@ class ProductProvider extends ChangeNotifier {
           final url = await _apiService.uploadImage(
             p.imageFileName ?? 'product_${p.id}.jpg',
             p.imageBytes!,
+            token: token,
           );
           if (url != null) {
             _products[i] = p.copyWith(imageUrl: url);
@@ -152,7 +153,7 @@ class ProductProvider extends ChangeNotifier {
       };
 
       // 3. Sincronizar con el Servidor
-      final success = await _apiService.syncData(data);
+      final success = await _apiService.syncData(data, token: token);
       
       if (success) {
         print('Datos publicados en el servidor correctamente');
@@ -167,7 +168,7 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> syncFromServer() async {
+  Future<bool> syncFromServer({String? token}) async {
     _isLoading = true;
     notifyListeners();
 

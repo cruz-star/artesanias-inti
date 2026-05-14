@@ -27,8 +27,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _isVideo = widget.product.imageFileName?.toLowerCase().endsWith('.mp4') ?? false ||
-              widget.product.imageFileName?.toLowerCase().endsWith('.mov') ?? false;
+    _isVideo = (widget.product.imageFileName?.toLowerCase().endsWith('.mp4') ?? false) ||
+              (widget.product.imageFileName?.toLowerCase().endsWith('.mov') ?? false);
     
     if (_isVideo) {
        _initVideo();

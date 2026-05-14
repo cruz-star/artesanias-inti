@@ -8,225 +8,140 @@ import 'product_detail_screen.dart';
 import 'cart_screen.dart';
 import 'seller_dashboard.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
     final productProvider = context.watch<ProductProvider>();
     final cart = context.watch<CartProvider>();
     final colorScheme = Theme.of(context).colorScheme;
 
-    final products = productProvider.availableProducts;
+    final filteredProducts = productProvider.availableProducts.where((p) {
+      return p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+             p.category.toLowerCase().contains(_searchQuery.toLowerCase());
+    }).toList();
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        title: Text('Artesanías Inti', style: TextStyle(color: colorScheme.onSurface)),
-        backgroundColor: colorScheme.surface,
-        iconTheme: IconThemeData(color: colorScheme.onSurface),
-        actions: [
-          if (auth.isClient)
-            Stack(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.shopping_cart),
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const CartScreen()),
-                  ),
-                ),
-                if (cart.itemCount > 0)
-                  Positioned(
-                    right: 4,
-                    top: 4,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: colorScheme.error,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        '${cart.itemCount}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          if (auth.isSeller)
-            IconButton(
-              icon: const Icon(Icons.dashboard),
-              tooltip: 'Panel de vendedor',
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SellerDashboard()),
-              ),
-            ),
-          PopupMenuButton<String>(
-            onSelected: (v) {
-              if (v == 'logout') {
-                auth.logout();
-              }
-            },
-            itemBuilder: (_) => [
-              PopupMenuItem(
-                value: 'info',
-                enabled: false,
-                child: Text(
-                  auth.isSeller ? 'Vendedor' : 'Cliente',
-                  style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 12),
-                ),
-              ),
-              const PopupMenuDivider(),
-              const PopupMenuItem(
-                value: 'logout',
-                child: ListTile(
-                  leading: Icon(Icons.logout),
-                  title: Text('Salir'),
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                ),
+        backgroundColor: colorScheme.primary,
+        elevation: 0,
+        title: Container(
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
+          child: TextField(
+            controller: _searchController,
+            onChanged: (v) => setState(() => _searchQuery = v),
+            decoration: const InputDecoration(
+              hintText: 'Buscar en Artesanías Inti...',
+              hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+              prefixIcon: Icon(Icons.search, size: 20, color: Colors.grey),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(vertical: 10),
+            ),
+          ),
+        ),
+      ),
+      body: Column(
+        children: [
+          // Banner o Categorías rápidas
+          Container(
+            height: 50,
+            color: colorScheme.primary,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                _categoryChip('Todos', colorScheme),
+                _categoryChip('Cerámica', colorScheme),
+                _categoryChip('Textiles', colorScheme),
+                _categoryChip('Joyería', colorScheme),
+                _categoryChip('Arte', colorScheme),
+              ],
+            ),
+          ),
+          Expanded(
+            child: filteredProducts.isEmpty
+                ? _buildEmptyState(colorScheme)
+                : GridView.builder(
+                    itemCount: filteredProducts.length,
+                    padding: const EdgeInsets.all(12),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.65,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                    ),
+                    itemBuilder: (context, index) {
+                      final product = filteredProducts[index];
+                      return ProductCard(
+                        product: product,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ProductDetailScreen(product: product),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
         ],
       ),
-      body: products.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.inventory_2_outlined,
-                    size: 64,
-                    color: colorScheme.onSurface.withValues(alpha: 0.38),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No hay productos disponibles',
-                    style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 18),
-                  ),
-                  if (auth.isSeller)
-                    TextButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SellerDashboard(),
-                        ),
-                      ),
-                      child: const Text('Ir al panel de vendedor'),
-                    ),
-                ],
-              ),
-            )
-          : Padding(
-              padding: const EdgeInsets.all(12),
-              child: GridView.builder(
-                itemCount: products.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.7,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                ),
-                itemBuilder: (context, index) {
-                  final product = products[index];
-                  return ProductCard(
-                    product: product,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ProductDetailScreen(product: product),
-                      ),
-                    ),
-                    trailing: auth.isClient
-                        ? Builder(
-                            builder: (context) {
-                              final cartItem = cart.items
-                                  .where((i) => i.product.id == product.id)
-                                  .firstOrNull;
-                              return Row(
-                                children: [
-                                  if (cartItem != null) ...[
-                                    Icon(
-                                      Icons.check,
-                                      size: 16,
-                                      color: Colors.green,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${cartItem.quantity}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.green,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.add_shopping_cart,
-                                        size: 18,
-                                      ),
-                                      onPressed: () {
-                                        context.read<CartProvider>().addToCart(
-                                          product,
-                                        );
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              '${product.name} agregado al carrito',
-                                            ),
-                                            duration: const Duration(
-                                              seconds: 1,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(),
-                                    ),
-                                  ] else
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.add_shopping_cart,
-                                        size: 18,
-                                      ),
-                                      onPressed: () {
-                                        context.read<CartProvider>().addToCart(
-                                          product,
-                                        );
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              '${product.name} agregado al carrito',
-                                            ),
-                                            duration: const Duration(
-                                              seconds: 1,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(),
-                                    ),
-                                ],
-                              );
-                            },
-                          )
-                        : null,
-                  );
-                },
-              ),
-            ),
+    );
+  }
+
+  Widget _categoryChip(String label, ColorScheme colorScheme) {
+    return Container(
+      margin: const EdgeInsets.only(right: 12, bottom: 10),
+      child: ActionChip(
+        label: Text(label),
+        onPressed: () => setState(() => _searchQuery = label == 'Todos' ? '' : label),
+        backgroundColor: Colors.white,
+        labelStyle: TextStyle(
+          color: colorScheme.secondary,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(ColorScheme colorScheme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.search_off, size: 64, color: Colors.grey.shade400),
+          const SizedBox(height: 16),
+          Text(
+            'No encontramos lo que buscas',
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+          ),
+        ],
+      ),
     );
   }
 }
+

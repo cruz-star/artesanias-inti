@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Gracias por tu compra! - Artesanías Inti</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body style="background:var(--bg-white);">
+    <div style="max-width: 600px; margin: 100px auto; text-align: center; padding: 32px;">
+        <div style="color:var(--success); font-size: 5rem;" class="material-symbols-outlined">check_circle</div>
+        <h1 style="margin: 24px 0;">¡Tu pago fue aprobado!</h1>
+        <p style="color:var(--text-dim); font-size: 1.1rem; margin-bottom: 32px;">
+            Gracias por apoyar el arte tradicional. Hemos enviado el detalle de tu compra a tu correo.
+        </p>
+        <div class="section-card" style="text-align: left;">
+            <p><strong>N° de Pedido:</strong> <span id="order-id">Cargando...</span></p>
+            <p style="margin-top:8px;"><strong>Estado:</strong> Aprobado</p>
+        </div>
+        <button class="primary-btn" onclick="window.location.href='/store/'" style="margin-top: 32px;">Volver a la tienda</button>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        document.getElementById('order-id').innerText = urlParams.get('orderId') || urlParams.get('external_reference') || 'Pendiente';
+        // Limpiar carrito al tener éxito
+        localStorage.removeItem('cart');
+    </script>
+</body>
+</html>

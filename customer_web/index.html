@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,9 +9,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-    <link rel="icon" type="image/png" href="ic_launcher.png">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico">
 </head>
+
 <body>
     <header>
         <nav>
@@ -78,7 +81,7 @@
             <div id="cart-items" class="cart-items">
                 <!-- Cart items will be loaded here -->
             </div>
-            
+
             <!-- Checkout Form (Hidden by default) -->
             <div id="checkout-form-container" class="checkout-form" style="display: none;">
                 <h4>Datos para el Envío</h4>
@@ -104,8 +107,8 @@
                         </label>
                     </div>
                     <div id="transfer-details" class="transfer-info" style="display: none;">
-                        <p><strong>CBU:</strong> <span id="display-cbu">Cargando...</span></p>
-                        <p><strong>Alias:</strong> <span id="display-alias">Cargando...</span></p>
+                        <p><strong>CBU:</strong> <span id="display-cbu">Cargando...</span> <button class="copy-btn" onclick="copyToClipboard('display-cbu')">Copiar</button></p>
+                        <p><strong>Alias:</strong> <span id="display-alias">Cargando...</span> <button class="copy-btn" onclick="copyToClipboard('display-alias')">Copiar</button></p>
                         <p><strong>Titular:</strong> <span id="display-titular">Cargando...</span></p>
                     </div>
                 </div>
@@ -117,7 +120,8 @@
                     <span id="cart-total">$ 0</span>
                 </div>
                 <button id="checkout-btn" class="primary-btn">Proceder al Pago</button>
-                <button id="confirm-order-btn" class="primary-btn" style="display: none;">Confirmar Pedido vía WhatsApp</button>
+                <button id="confirm-order-btn" class="primary-btn" style="display: none;">Confirmar Pedido vía
+                    WhatsApp</button>
             </div>
         </div>
     </div>
@@ -125,11 +129,12 @@
     <footer>
         <div class="footer-content">
             <div class="footer-logo">
-                <p>Artesanías Inti &copy; 2027</p>
+                <p>Artesanías Inti Derechos Reservados &copy; 2027</p>
             </div>
         </div>
     </footer>
 
-    <script src="app.js"></script>
+    <script src="app_v2.js"></script>
 </body>
+
 </html>

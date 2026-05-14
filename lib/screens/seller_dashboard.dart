@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../providers/product_provider.dart';
+import '../providers/auth_provider.dart';
 import 'seller_product_form.dart';
 import 'seller_contact_screen.dart';
 import '../config/secrets.dart';
@@ -34,9 +35,14 @@ class _SellerDashboardState extends State<SellerDashboard> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFFDF2E9),
       appBar: AppBar(
-        title: const Text('Panel del Vendedor'),
-        backgroundColor: colorScheme.inversePrimary,
+        title: const Text(
+          'Inventario',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
         actions: [
           IconButton(
             icon: productProvider.isPublishing
@@ -45,36 +51,29 @@ class _SellerDashboardState extends State<SellerDashboard> {
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Colors.white,
+                      color: Color(0xFFD35400),
                     ),
                   )
-                : const Icon(Icons.cloud_upload),
-            tooltip: 'Publicar cambios en la Web',
+                : const Icon(Icons.cloud_upload_outlined),
+            tooltip: 'Publicar a la Web',
             onPressed: productProvider.isPublishing
                 ? null
                 : () async {
-                    final success = await productProvider.publishToWeb();
+                    final auth = context.read<AuthProvider>();
+                    final success = await productProvider.publishToWeb(token: auth.token);
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
                             success
-                                ? '¡Publicado con éxito!'
-                                : 'Error al publicar',
+                                ? '¡Tienda web actualizada!'
+                                : 'Error al actualizar web',
                           ),
                           backgroundColor: success ? Colors.green : Colors.red,
                         ),
                       );
                     }
                   },
-          ),
-          IconButton(
-            icon: const Icon(Icons.contact_mail),
-            tooltip: 'Información de contacto',
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const SellerContactScreen()),
-            ),
           ),
         ],
       ),
@@ -83,174 +82,16 @@ class _SellerDashboardState extends State<SellerDashboard> {
           if (_isDownloading)
             LinearProgressIndicator(value: _downloadProgress),
           if (productProvider.newVersionAvailable != null && !_isDownloading)
-            MaterialBanner(
-              content: Text(
-                'Nueva versión disponible (${productProvider.newVersionAvailable})',
-                style: const TextStyle(color: Colors.white),
-              ),
-              backgroundColor: Colors.orange.shade800,
-              leading: const Icon(Icons.update, color: Colors.white),
-              actions: [
-                TextButton(
-                  onPressed: () => _downloadAndInstall(productProvider.updateUrl),
-                  child: const Text('ACTUALIZAR AHORA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            color: colorScheme.secondaryContainer.withValues(alpha: 0.3),
-            child: Row(
-              children: [
-                Icon(Icons.inventory_2, color: colorScheme.secondary),
-                const SizedBox(width: 8),
-                Text(
-                  '${productProvider.products.length} productos',
-                  style: const TextStyle(fontSize: 16),
-                ),
-                const Spacer(),
-                Text(
-                  'Contacto: ${productProvider.contacto}',
-                  style: TextStyle(fontSize: 12, color: colorScheme.onSurface.withValues(alpha: 0.6)),
-                ),
-              ],
-            ),
-          ),
+            _buildUpdateBanner(productProvider),
           Expanded(
             child: productProvider.products.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.inventory_2_outlined,
-                          size: 64,
-                          color: colorScheme.onSurface.withValues(alpha: 0.4),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No hay productos',
-                          style: TextStyle(
-                            color: colorScheme.onSurface.withValues(alpha: 0.6),
-                            fontSize: 18,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Agrega tu primer producto',
-                          style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.5)),
-                        ),
-                      ],
-                    ),
-                  )
+                ? _buildEmptyState(colorScheme)
                 : ListView.builder(
                     itemCount: productProvider.products.length,
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(16),
                     itemBuilder: (context, index) {
                       final product = productProvider.products[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(8),
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: SizedBox(
-                              width: 60,
-                              height: 60,
-                              child: product.imageBytes != null
-                                  ? Image.memory(
-                                      product.imageBytes!,
-                                      fit: BoxFit.cover,
-                                    )
-                                  : (product.imageUrl != null
-                                      ? Image.network(
-                                          '${Secrets.serverUrl}/${product.imageUrl}',
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) => Container(
-                                            color: colorScheme.onSurface.withOpacity(0.1),
-                                            child: Icon(Icons.image_outlined, color: colorScheme.onSurface.withOpacity(0.4)),
-                                          ),
-                                        )
-                                      : Container(
-                                          color: colorScheme.onSurface.withOpacity(0.1),
-                                          child: Icon(Icons.image_outlined, color: colorScheme.onSurface.withOpacity(0.4)),
-                                        )),
-                            ),
-                          ),
-                          title: Text(
-                            product.name,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                currencyFormat.format(product.price).replaceAll(',', '.'),
-                                style: TextStyle(
-                                  color: colorScheme.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    product.category,
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: product.isAvailable
-                                          ? Colors.green.withValues(alpha: 0.1)
-                                          : Colors.red.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      product.isAvailable
-                                          ? 'Disponible'
-                                          : 'No disponible',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: product.isAvailable
-                                            ? Colors.green
-                                            : Colors.red,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit_outlined),
-                                onPressed: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        SellerProductForm(product: product),
-                                  ),
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete_outline,
-                                  color: Colors.red,
-                                ),
-                                onPressed: () =>
-                                    _confirmDelete(context, product),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
+                      return _buildProductCard(product, currencyFormat, colorScheme);
                     },
                   ),
           ),
@@ -262,12 +103,140 @@ class _SellerDashboardState extends State<SellerDashboard> {
           MaterialPageRoute(builder: (_) => const SellerProductForm()),
         ),
         icon: const Icon(Icons.add),
-        label: const Text('Agregar producto'),
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
+        label: const Text('Nuevo producto'),
+        backgroundColor: const Color(0xFFD35400),
+        foregroundColor: Colors.white,
       ),
     );
   }
+
+  Widget _buildUpdateBanner(ProductProvider provider) {
+    return Container(
+      color: Colors.orange.shade800,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          const Icon(Icons.system_update, color: Colors.white),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Versión ${provider.newVersionAvailable} lista',
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          TextButton(
+            onPressed: () => _downloadAndInstall(provider.updateUrl),
+            child: const Text('ACTUALIZAR', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(ColorScheme colorScheme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.inventory_2_outlined, size: 80, color: Colors.grey.shade300),
+          const SizedBox(height: 16),
+          const Text(
+            'Aún no tienes productos',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey),
+          ),
+          const SizedBox(height: 8),
+          const Text('Toca el botón amarillo para empezar', style: TextStyle(color: Colors.grey)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductCard(product, NumberFormat format, ColorScheme colorScheme) {
+    final isVideo = product.imageFileName?.toLowerCase().endsWith('.mp4') ?? false;
+
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
+      child: InkWell(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => SellerProductForm(product: product)),
+        ),
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: SizedBox(
+                      width: 90,
+                      height: 90,
+                      child: product.imageBytes != null
+                          ? Image.memory(product.imageBytes!, fit: BoxFit.cover)
+                          : (product.imageUrl != null
+                              ? Image.network(
+                                  '${Secrets.serverUrl}/${product.imageUrl}',
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (c, e, s) => Container(color: Colors.grey.shade100, child: const Icon(Icons.image_outlined)),
+                                )
+                              : Container(color: Colors.grey.shade100, child: const Icon(Icons.image_outlined))),
+                    ),
+                  ),
+                  if (isVideo)
+                    Positioned(
+                      bottom: 4,
+                      right: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(4)),
+                        child: const Icon(Icons.play_arrow, color: Colors.white, size: 16),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      format.format(product.price).replaceAll(',', '.'),
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${product.category} • ${product.isAvailable ? 'Publicado' : 'Pausado'}',
+                      style: TextStyle(fontSize: 12, color: product.isAvailable ? Colors.green : Colors.orange),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, color: Colors.grey, size: 20),
+                onPressed: () => _confirmDelete(context, product),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
 
   Future<void> _downloadAndInstall(String? url) async {
     if (url == null) return;
@@ -290,8 +259,6 @@ class _SellerDashboardState extends State<SellerDashboard> {
 
     try {
       // 2. Descargar el APK
-      // Nota: Para progreso real se necesitaría una implementación más compleja con http.Client
-      // Para este ejemplo usaremos un stream básico o simplemente el download directo
       final response = await http.get(Uri.parse(url));
       
       if (response.statusCode == 200) {

@@ -12,9 +12,8 @@ const MOCK_PRODUCTS = [
 ];
 
 // Configuration
-const SERVER_URL = ''; // Se detectará automáticamente si es el mismo host
-const PRODUCTS_URL = 'productos.json';
-const CONFIG_URL = 'config.json';
+const PRODUCTS_URL = '/api/products/';
+const CONFIG_URL = '/api/config/';
 
 let products = [];
 let cart = [];
@@ -99,19 +98,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function init() {
+    console.log('--- Init v1.0.2 ---');
     try {
         // Cargar Productos
-        const prodRes = await fetch(PRODUCTS_URL + '?t=' + Date.now());
+        const prodRes = await fetch(PRODUCTS_URL);
         if (prodRes.ok) {
-            const data = await prodRes.json();
-            // Soporta formato antiguo (objeto con products[]) o nuevo (array directo)
-            products = Array.isArray(data) ? data : (data.products || MOCK_PRODUCTS);
+            products = await prodRes.json();
+            console.log('Productos cargados:', products.length);
         } else {
+            console.warn('Error al cargar productos de la API, usando mock');
             products = MOCK_PRODUCTS;
         }
 
         // Cargar Configuración
-        const confRes = await fetch(CONFIG_URL + '?t=' + Date.now());
+        const confRes = await fetch(CONFIG_URL);
         if (confRes.ok) {
             const data = await confRes.json();
             if (data.contact) storeContact = data.contact;
@@ -125,13 +125,53 @@ async function init() {
     renderProducts(products);
 }
 
+function resolveImageUrl(product) {
+    // 1. Prioridad: mediaUrls[0] o imageFileName (formato servidor)
+    let fileName = '';
+    if (product.mediaUrls && product.mediaUrls.length > 0) {
+        fileName = product.mediaUrls[0];
+    } else if (product.imageFileName) {
+        fileName = product.imageFileName;
+    }
+
+    if (fileName) {
+        if (fileName.startsWith('http')) return fileName;
+        // Si es una ruta relativa, asumimos que está en /public/media/
+        return `/public/media/${fileName.split('/').pop()}`;
+    }
+    
+    // 2. Fallback: imageUrl o image (formatos antiguos/mock)
+    const fallback = product.imageUrl || product.image;
+    if (fallback) {
+        if (fallback.startsWith('http') || fallback.startsWith('data:')) return fallback;
+        return `/public/media/${fallback.split('/').pop()}`;
+    }
+
+    return 'ic_launcher.png';
+}
+
+function isVideo(url) {
+    const videoExts = ['.mp4', '.mov', '.avi', '.webm'];
+    return videoExts.some(ext => url.toLowerCase().endsWith(ext));
+}
+
 function formatCurrency(val) {
-    return new Intl.NumberFormat('es-AR', {
-        style: 'currency',
-        currency: 'ARS',
+    // Formato solicitado: $ 5.000
+    const formatted = new Intl.NumberFormat('es-AR', {
         minimumFractionDigits: 0
     }).format(val);
+    return `$ ${formatted}`;
 }
+
+window.copyToClipboard = (elementId) => {
+    const text = document.getElementById(elementId).innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = event.target;
+        const originalText = btn.innerText;
+        btn.innerText = '¡Copiado!';
+        setTimeout(() => btn.innerText = originalText, 2000);
+    });
+};
 
 function updateContactsUI() {
     const waText = document.getElementById('contact-phone-text');
@@ -140,18 +180,22 @@ function updateContactsUI() {
     const emailLink = document.getElementById('footer-email');
 
     if (storeContact.phone) {
-        waText.innerText = storeContact.phone;
-        waLink.href = `https://wa.me/${storeContact.phone.replace(/\D/g, '')}`;
+        if (waText) waText.innerText = storeContact.phone;
+        if (waLink) waLink.href = `https://wa.me/${storeContact.phone.replace(/\D/g, '')}`;
     }
     if (storeContact.email) {
-        emailText.innerText = storeContact.email;
-        emailLink.href = `mailto:${storeContact.email}`;
+        if (emailText) emailText.innerText = storeContact.email;
+        if (emailLink) emailLink.href = `mailto:${storeContact.email}`;
     }
 
     // Actualizar datos de transferencia en el DOM
-    document.getElementById('display-cbu').innerText = paymentInfo.cbu || 'No configurado';
-    document.getElementById('display-alias').innerText = paymentInfo.alias || 'No configurado';
-    document.getElementById('display-titular').innerText = paymentInfo.titular || 'No configurado';
+    const cbuEl = document.getElementById('display-cbu');
+    const aliasEl = document.getElementById('display-alias');
+    const titularEl = document.getElementById('display-titular');
+
+    if (cbuEl) cbuEl.innerText = paymentInfo.cbu || 'No configurado';
+    if (aliasEl) aliasEl.innerText = paymentInfo.alias || 'No configurado';
+    if (titularEl) titularEl.innerText = paymentInfo.titular || 'No configurado';
 }
 
 function renderProducts(productsToRender) {
@@ -159,12 +203,15 @@ function renderProducts(productsToRender) {
     productsToRender.forEach(product => {
         const card = document.createElement('div');
         card.className = 'product-card';
-        // Determinar imagen (Prioridad imageUrl > image > fallback)
-        const imgSrc = product.imageUrl || product.image || 'ic_launcher.png';
+        const mediaSrc = resolveImageUrl(product);
+        const isVid = isVideo(mediaSrc);
         
         card.innerHTML = `
             <div class="card-img">
-                <img src="${imgSrc}" alt="${product.name}">
+                ${isVid 
+                    ? `<video src="${mediaSrc}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>` 
+                    : `<img src="${mediaSrc}" alt="${product.name}">`
+                }
                 <span class="category-badge">${product.category}</span>
             </div>
             <div class="card-info">
@@ -213,7 +260,7 @@ function updateCartUI() {
         const div = document.createElement('div');
         div.className = 'cart-item';
         div.style.cssText = 'display:flex; gap:1rem; margin-bottom:1rem; align-items:center;';
-        const imgSrc = item.imageUrl || item.image || 'ic_launcher.png';
+        const imgSrc = resolveImageUrl(item);
         div.innerHTML = `
             <img src="${imgSrc}" style="width:50px; height:50px; border-radius:8px; object-fit:cover;">
             <div style="flex:1">
@@ -253,22 +300,26 @@ function sendOrder() {
     const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
 
     let message = `*Nuevo Pedido - Artesanías Inti*\n\n`;
-    message += `*Cliente:* ${name}\n`;
-    message += `*Dirección:* ${address}\n`;
-    message += `*Teléfono:* ${phone}\n`;
-    message += `*Pago:* ${paymentMethod}\n\n`;
-    message += `*Productos:*\n`;
+    message += `👤 *Cliente:* ${name}\n`;
+    message += `📍 *Dirección:* ${address}\n`;
+    message += `📞 *Teléfono:* ${phone}\n`;
+    message += `💳 *Método de Pago:* ${paymentMethod}\n\n`;
+    message += `🛍️ *Detalle del Pedido:*\n`;
     
     cart.forEach(item => {
         message += `- ${item.name} (x${item.quantity}): ${ formatCurrency(item.price * item.quantity) }\n`;
     });
     
-    message += `\n*Total: ${cartTotal.innerText}*`;
+    message += `\n💰 *TOTAL A PAGAR: ${cartTotal.innerText}*`;
 
     if (paymentMethod === 'Transferencia') {
-        message += `\n\n*Pagaré por transferencia:*`;
-        message += `\nCBU: ${paymentInfo.cbu}`;
-        message += `\nAlias: ${paymentInfo.alias}`;
+        message += `\n\n--- *DATOS PARA TRANSFERENCIA* ---\n`;
+        message += `📍 *CBU:* ${paymentInfo.cbu}\n`;
+        message += `📍 *Alias:* ${paymentInfo.alias}\n`;
+        message += `👤 *Titular:* ${paymentInfo.titular}\n\n`;
+        message += `_Por favor, adjunta el comprobante una vez realizada la transferencia._`;
+    } else {
+        message += `\n\n_Coordinaremos los detalles finales por aquí._`;
     }
     
     const waNumber = storeContact.phone.replace(/\D/g, '');

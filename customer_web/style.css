@@ -141,6 +141,28 @@ nav {
     justify-content: center;
 }
 
+/* Copy Button */
+.copy-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
+    color: var(--primary);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: all 0.2s ease;
+}
+
+.copy-btn:hover {
+    background: var(--primary);
+    color: var(--bg-deep);
+}
+
+.copy-btn:active {
+    transform: scale(0.9);
+}
+
 /* Hero Section */
 .hero {
     height: 40vh; /* Reduced height since logo is gone */
@@ -273,7 +295,7 @@ nav {
     position: relative;
 }
 
-.card-img img {
+.card-img img, .card-img video {
     width: 100%;
     height: 100%;
     object-fit: cover;

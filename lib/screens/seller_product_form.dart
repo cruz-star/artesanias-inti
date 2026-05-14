@@ -163,168 +163,202 @@ class _SellerProductFormState extends State<SellerProductForm> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(isEditing ? 'Editar Producto' : 'Nuevo Producto'),
-        backgroundColor: colorScheme.inversePrimary,
+        title: Text(
+          isEditing ? 'Editar publicación' : 'Nueva publicación',
+          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const Text(
+                'Fotos y videos',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
               GestureDetector(
                 onTap: _pickMedia,
                 child: Container(
                   width: double.infinity,
-                  height: 200,
+                  height: 220,
                   decoration: BoxDecoration(
-                    color: colorScheme.onSurface.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.2)),
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade200),
                   ),
                   child: _imageBytes != null
                       ? ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: isVideo && _videoController != null && _videoController!.value.isInitialized
-                              ? AspectRatio(
-                                  aspectRatio: _videoController!.value.aspectRatio,
-                                  child: VideoPlayer(_videoController!),
-                                )
-                              : Image.memory(
-                                  _imageBytes!,
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
+                          borderRadius: BorderRadius.circular(8),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              isVideo && _videoController != null && _videoController!.value.isInitialized
+                                  ? AspectRatio(
+                                      aspectRatio: _videoController!.value.aspectRatio,
+                                      child: VideoPlayer(_videoController!),
+                                    )
+                                  : Image.memory(
+                                      _imageBytes!,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                    ),
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(color: Colors.black45, shape: BoxShape.circle),
+                                  child: const Icon(Icons.edit, color: Colors.white, size: 18),
                                 ),
+                              ),
+                              if (isVideo)
+                                const Icon(Icons.play_circle_fill, color: Colors.white70, size: 64),
+                            ],
+                          ),
                         )
                       : Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              isVideo ? Icons.videocam_outlined : Icons.add_photo_alternate_outlined,
-                              size: 48,
-                              color: colorScheme.onSurface.withValues(alpha: 0.4),
-                            ),
+                            Icon(Icons.add_a_photo_outlined, size: 48, color: Colors.grey.shade300),
                             const SizedBox(height: 8),
-                            Text(
-                              isVideo ? 'Video seleccionado' : 'Tocar para agregar imagen o video',
-                              style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.5)),
-                            ),
-                            if (_imageFileName != null)
-                              Text(
-                                _imageFileName!,
-                                style: TextStyle(
-                                  color: colorScheme.onSurface.withValues(alpha: 0.5),
-                                  fontSize: 12,
-                                ),
-                              ),
+                            const Text('Agregar imagen o video', style: TextStyle(color: Colors.grey)),
                           ],
                         ),
                 ),
               ),
+              const SizedBox(height: 24),
+              _buildSectionTitle('Información básica'),
               const SizedBox(height: 16),
-              TextFormField(
+              _buildTextField(
                 controller: _nameCtrl,
-                decoration: InputDecoration(
-                  labelText: 'Nombre del producto',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  prefixIcon: const Icon(Icons.label_outline),
-                ),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+                label: 'Título de la publicación',
+                hint: 'Ej: Vasija de barro pintada',
+                icon: Icons.title,
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Ingresa un título' : null,
               ),
-              const SizedBox(height: 12),
-              TextFormField(
+              const SizedBox(height: 16),
+              _buildTextField(
                 controller: _descCtrl,
+                label: 'Descripción del producto',
+                hint: 'Cuéntales a tus clientes sobre tu producto...',
+                icon: Icons.description_outlined,
                 maxLines: 4,
-                decoration: InputDecoration(
-                  labelText: 'Descripción',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  prefixIcon: const Padding(
-                    padding: EdgeInsets.only(bottom: 64),
-                    child: Icon(Icons.description_outlined),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _priceCtrl,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: InputDecoration(
-                  labelText: 'Precio (\$)',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  prefixIcon: const Icon(Icons.attach_money),
-                ),
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Requerido';
-                  final parsed = double.tryParse(v.trim());
-                  if (parsed == null || parsed <= 0) {
-                    return 'Ingrese un precio válido';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _categoryCtrl,
-                decoration: InputDecoration(
-                  labelText: 'Categoría',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  prefixIcon: const Icon(Icons.category_outlined),
-                ),
-              ),
-              const SizedBox(height: 12),
-              SwitchListTile(
-                title: const Text('Disponible'),
-                subtitle: Text(
-                  _isAvailable
-                      ? 'Visible para clientes'
-                      : 'Oculto para clientes',
-                ),
-                value: _isAvailable,
-                onChanged: (v) => setState(() => _isAvailable = v),
-                secondary: Icon(
-                  _isAvailable ? Icons.visibility : Icons.visibility_off,
-                ),
               ),
               const SizedBox(height: 24),
+              _buildSectionTitle('Precio y Categoría'),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _priceCtrl,
+                      label: 'Precio (\$)',
+                      hint: '0',
+                      icon: Icons.attach_money,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) return 'Requerido';
+                        final parsed = double.tryParse(v.trim());
+                        if (parsed == null || parsed <= 0) return 'Precio inválido';
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _categoryCtrl,
+                      label: 'Categoría',
+                      hint: 'Ej: Cerámica',
+                      icon: Icons.category_outlined,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: SwitchListTile(
+                  title: const Text('Producto disponible', style: TextStyle(fontWeight: FontWeight.w500)),
+                  subtitle: const Text('Los clientes podrán verlo en la web'),
+                  activeColor: const Color(0xFFD35400),
+                  value: _isAvailable,
+                  onChanged: (v) => setState(() => _isAvailable = v),
+                ),
+              ),
+              const SizedBox(height: 40),
               SizedBox(
                 width: double.infinity,
-                height: 50,
-                child: ElevatedButton.icon(
+                height: 54,
+                child: ElevatedButton(
                   onPressed: _save,
-                  icon: Icon(isEditing ? Icons.save : Icons.add),
-                  label: Text(
-                    isEditing ? 'Guardar cambios' : 'Agregar producto',
-                    style: const TextStyle(fontSize: 16),
-                  ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: colorScheme.primary,
-                    foregroundColor: colorScheme.onPrimary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    backgroundColor: const Color(0xFFD35400),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    isEditing ? 'Guardar cambios' : 'Publicar producto',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      maxLines: maxLines,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade200)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFD35400))),
+        prefixIcon: Icon(icon, color: Colors.grey.shade400, size: 20),
+        filled: true,
+        fillColor: Colors.grey.shade50,
+      ),
+      validator: validator,
     );
   }
 }

@@ -19,6 +19,7 @@ dependencies:
   video_player: ^2.8.2
   path_provider: ^2.1.2
   open_filex: ^4.5.0
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:

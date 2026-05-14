@@ -6,13 +6,16 @@ class ApiService {
   static const String baseUrl = Secrets.serverUrl;
 
   // Sincronización masiva (Botón Publicar)
-  Future<bool> syncData(Map<String, dynamic> data) async {
+  Future<bool> syncData(Map<String, dynamic> data, {String? token}) async {
     final url = Uri.parse('$baseUrl/api/config/sync');
     
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
         body: jsonEncode(data),
       );
 
@@ -25,14 +28,17 @@ class ApiService {
   }
 
   // Subir imagen al servidor
-  Future<String?> uploadImage(String fileName, List<int> bytes) async {
+  Future<String?> uploadImage(String fileName, List<int> bytes, {String? token}) async {
     final url = Uri.parse('$baseUrl/api/upload');
     
     try {
       final base64Data = base64Encode(bytes);
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
         body: jsonEncode({
           'fileName': fileName,
           'data': base64Data,

@@ -8,7 +8,7 @@ class GitHubSync {
   final String owner = 'cruz-star';
   final String repo = 'artesanias-inti';
   // El path base que especificaste para los archivos:
-  final String basePath = 'customer_web_v3'; 
+  final String basePath = ''; 
   
   // Mapeo de colecciones a nombres de archivo reales en GitHub
   String getFileName(String collection) {

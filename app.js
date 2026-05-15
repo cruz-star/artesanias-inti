@@ -1,10 +1,10 @@
 // v1.0.1 Mercado Libre Style App Logic
-const API_BASE = '/api';
-const API_URL = API_BASE; // Define API_URL for consistency
-const PRODUCTS_URL = `${API_BASE}/products/`;
-const AUTH_URL = `${API_BASE}/auth`;
-const CONFIG_URL = `${API_BASE}/config/`;
-const PAYMENTS_URL = `${API_BASE}/payments/create-preference`;
+let API_BASE = '/api';
+let API_URL = API_BASE;
+let PRODUCTS_URL = `${API_BASE}/products/`;
+let AUTH_URL = `${API_BASE}/auth`;
+let CONFIG_URL = `${API_BASE}/config/`;
+let PAYMENTS_URL = `${API_BASE}/payments/create-preference`;
 
 let products = [];
 let cart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -28,6 +28,7 @@ const userNameLabel = document.getElementById('user-name-label');
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
     initCarousel();
+    await discoverServer();
     await loadProducts();
     await loadConfig();
     updateUI();
@@ -48,6 +49,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         navigateTo('cart');
     });
 });
+
+async function discoverServer() {
+    try {
+        console.log('🔍 Buscando servidor...');
+        const res = await fetch('https://raw.githubusercontent.com/cruz-star/artesanias-inti/main/config.json?t=' + Date.now());
+        const data = await res.json();
+        if (data.url) {
+            API_BASE = data.url;
+            API_URL = API_BASE;
+            PRODUCTS_URL = `${API_BASE}/api/products/`;
+            AUTH_URL = `${API_BASE}/api/auth`;
+            CONFIG_URL = `${API_BASE}/api/config/`;
+            PAYMENTS_URL = `${API_BASE}/api/payments/create-preference`;
+            console.log('🚀 Servidor detectado en:', API_BASE);
+        }
+    } catch (e) {
+        console.warn('⚠️ No se detectó servidor dinámico, usando rutas locales.');
+        // Fallback: si no hay servidor, al menos cargar productos estáticos
+        PRODUCTS_URL = 'productos.json';
+    }
+}
 
 async function loadProducts() {
     try {

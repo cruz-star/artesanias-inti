@@ -12,7 +12,7 @@ class ApiService {
     try {
       // Intentamos obtener la IP más reciente desde GitHub
       final response = await http.get(
-        Uri.parse('https://raw.githubusercontent.com/cruz-star/artesanias-inti/main/data/config/discovery.json')
+        Uri.parse('https://raw.githubusercontent.com/cruz-star/artesanias-inti/main/config.json')
       ).timeout(const Duration(seconds: 3));
 
       if (response.statusCode == 200) {

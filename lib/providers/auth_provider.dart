@@ -74,7 +74,7 @@ class AuthProvider extends ChangeNotifier {
       final response = await http.get(
         Uri.parse('${Secrets.serverUrl}/api/health'), // O un endpoint de /me
         headers: {'Authorization': 'Bearer $_token'},
-      );
+      ).timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
         return true;
       }

@@ -17,7 +17,7 @@ class ApiService {
           if (token != null) 'Authorization': 'Bearer $token',
         },
         body: jsonEncode(data),
-      );
+      ).timeout(const Duration(seconds: 5));
 
       print('Sync Response: ${response.statusCode}');
       return response.statusCode == 200;
@@ -43,7 +43,7 @@ class ApiService {
           'fileName': fileName,
           'data': base64Data,
         }),
-      );
+      ).timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
@@ -61,7 +61,7 @@ class ApiService {
     final url = Uri.parse('$baseUrl/api/config');
     
     try {
-      final response = await http.get(url);
+      final response = await http.get(url).timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as Map<String, dynamic>;
       }
@@ -77,7 +77,7 @@ class ApiService {
     final url = Uri.parse('$baseUrl/api/products');
     
     try {
-      final response = await http.get(url);
+      final response = await http.get(url).timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as List<dynamic>;
       }

@@ -49,3 +49,7 @@ server_manager/build/
 server_manager/.env
 server_manager/.dart_tool/
 server_manager/.flutter-plugins-dependencies
+**/.kotlin/
+**/.gradle/
+**/android/.gradle/
+**/android/.kotlin/

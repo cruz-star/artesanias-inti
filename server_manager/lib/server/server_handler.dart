@@ -90,6 +90,15 @@ class IntiServer {
     return (Handler innerHandler) {
       return (Request request) async {
         final response = await innerHandler(request);
+        
+        // Rastrear actividad según la ruta
+        final path = request.requestedUri.path;
+        if (path.contains('/api/config/sync') || path.contains('/api/upload')) {
+          ServerConfig().lastAppActivity = DateTime.now();
+        } else if (path.contains('/api/products') || path.contains('/api/orders')) {
+          ServerConfig().lastWebActivity = DateTime.now();
+        }
+
         ServerConfig().log('${request.method} ${request.requestedUri.path} -> ${response.statusCode}');
         return response;
       };

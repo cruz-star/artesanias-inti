@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -63,6 +64,11 @@ class _ServerHomePageState extends State<ServerHomePage> {
     });
     _getIpAddress();
     _config.log('Iniciando Panel de Control en ${Platform.operatingSystem}...');
+    
+    // Timer para refrescar los puntos de estado cada 10 segundos
+    Timer.periodic(const Duration(seconds: 10), (timer) {
+      if (mounted) setState(() {});
+    });
   }
 
   Future<void> _getIpAddress() async {
@@ -141,6 +147,72 @@ class _ServerHomePageState extends State<ServerHomePage> {
     }
   }
 
+  Widget _buildStatusSection() {
+    final now = DateTime.now();
+    // Consideramos "activo" si hubo actividad en los últimos 5 minutos
+    final isAppActive = _config.lastAppActivity != null && 
+                        now.difference(_config.lastAppActivity!).inMinutes < 5;
+    final isWebActive = _config.lastWebActivity != null && 
+                        now.difference(_config.lastWebActivity!).inMinutes < 5;
+    
+    Color appColor = isAppActive ? Colors.green : Colors.red;
+    Color webColor = isWebActive ? Colors.green : Colors.red;
+    
+    // Estado entrelazado (Celeste si ambos están bien, Naranja si falta uno)
+    Color linkColor = (isAppActive && isWebActive) ? Colors.lightBlue : Colors.orange;
+    String linkText = (isAppActive && isWebActive) ? 'Sistemas Entrelazados' : 'Sincronización Parcial';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildStatusDot('APP VENDEDOR', appColor),
+              _buildStatusDot('TIENDA WEB', webColor),
+            ],
+          ),
+          const Divider(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.link, color: linkColor, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                linkText.toUpperCase(), 
+                style: TextStyle(color: linkColor, fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 1.2)
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusDot(String label, Color color) {
+    return Column(
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            boxShadow: [BoxShadow(color: color.withOpacity(0.4), blurRadius: 8, spreadRadius: 2)],
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -162,6 +234,8 @@ class _ServerHomePageState extends State<ServerHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            _buildStatusSection(),
+            const SizedBox(height: 16),
             // Status Card
             Card(
               child: Padding(

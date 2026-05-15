@@ -14,6 +14,10 @@ class ServerConfig {
   final StreamController<String> _logController = StreamController<String>.broadcast();
   Stream<String> get logStream => _logController.stream;
 
+  // Seguimiento de actividad
+  DateTime? lastAppActivity;
+  DateTime? lastWebActivity;
+
   void log(String message) {
     final timestamp = DateTime.now().toString().split('.')[0];
     _logController.add('[$timestamp] $message');

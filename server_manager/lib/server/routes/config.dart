@@ -60,7 +60,7 @@ Handler configRoutes(JsonStorage storage) {
         headers: {'Content-Type': 'application/json'}
       );
     }
-  });
+  }));
 
   return router.call;
 }

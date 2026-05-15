@@ -3,10 +3,34 @@ import 'package:http/http.dart' as http;
 import '../config/secrets.dart';
 
 class ApiService {
-  static const String baseUrl = Secrets.serverUrl;
+  static const String fallbackUrl = Secrets.serverUrl;
+  static String? _dynamicBaseUrl;
+
+  Future<String> _getDiscoveryUrl() async {
+    if (_dynamicBaseUrl != null) return _dynamicBaseUrl!;
+    
+    try {
+      // Intentamos obtener la IP más reciente desde GitHub
+      final response = await http.get(
+        Uri.parse('https://raw.githubusercontent.com/cruz-star/artesanias-inti/main/data/config/discovery.json')
+      ).timeout(const Duration(seconds: 3));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        _dynamicBaseUrl = data['url'];
+        print('📡 Servidor detectado automáticamente en: $_dynamicBaseUrl');
+        return _dynamicBaseUrl!;
+      }
+    } catch (e) {
+      print('⚠️ No se pudo obtener IP dinámica de GitHub, usando fallback: $e');
+    }
+    
+    return fallbackUrl;
+  }
 
   // Sincronización masiva (Botón Publicar)
   Future<bool> syncData(Map<String, dynamic> data, {String? token}) async {
+    final baseUrl = await _getDiscoveryUrl();
     final url = Uri.parse('$baseUrl/api/config/sync');
     
     try {
@@ -29,6 +53,7 @@ class ApiService {
 
   // Subir imagen al servidor
   Future<String?> uploadImage(String fileName, List<int> bytes, {String? token}) async {
+    final baseUrl = await _getDiscoveryUrl();
     final url = Uri.parse('$baseUrl/api/upload');
     
     try {
@@ -58,6 +83,7 @@ class ApiService {
 
   // Descargar configuración (incluye pagos y contacto)
   Future<Map<String, dynamic>?> fetchConfig() async {
+    final baseUrl = await _getDiscoveryUrl();
     final url = Uri.parse('$baseUrl/api/config');
     
     try {
@@ -74,6 +100,7 @@ class ApiService {
 
   // Descargar productos
   Future<List<dynamic>?> fetchProducts() async {
+    final baseUrl = await _getDiscoveryUrl();
     final url = Uri.parse('$baseUrl/api/products');
     
     try {

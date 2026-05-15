@@ -104,6 +104,9 @@ class _ServerHomePageState extends State<ServerHomePage> {
       );
 
       await server.start();
+      if (_ipAddress != null && _ipAddress != 'No detectada') {
+        _updateDiscoveryInfo(_ipAddress!);
+      }
       setState(() {});
     } catch (e) {
       _config.log('Error al iniciar servidor: $e');
@@ -115,10 +118,34 @@ class _ServerHomePageState extends State<ServerHomePage> {
     setState(() {});
   }
 
+  Future<void> _updateDiscoveryInfo(String ip) async {
+    _config.log('Publicando dirección de conexión en GitHub para sincronización remota...');
+    try {
+      final appDocDir = await getApplicationDocumentsDirectory();
+      final dataPath = p.join(appDocDir.path, 'ArtesaniasInti', 'data');
+      final storage = JsonStorage(basePath: dataPath);
+      await storage.init();
+
+      final discoveryData = {
+        'url': 'http://$ip:${_config.port}',
+        'lastUpdate': DateTime.now().toIso8601String(),
+        'platform': Platform.operatingSystem,
+        'status': 'online'
+      };
+
+      // Guardar local y empujar a GitHub
+      storage.insert('config', 'discovery', discoveryData, push: true);
+      _config.log('🚀 ¡Conexión global activada! La App ya puede encontrarte.');
+    } catch (e) {
+      _config.log('⚠️ No se pudo publicar la IP en GitHub: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: const Icon(Icons.dns, color: Colors.white), // Ícono de Servidor
         title: const Text('Artesanías Inti - Server Manager', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Theme.of(context).primaryColor,
         centerTitle: true,
